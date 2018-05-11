@@ -29,6 +29,34 @@ def get_input_file():
 # Tip: it will be easiest to write your output in /usr/local/luigi/output
 # you can read it using docker exec pycon2018luigi_scheduler_1 cat <your_output_file>
 
+class SourceFileTask(luigi.Task):
+    def output(self):
+        return luigi.LocalTarget(get_input_file())
+
+
+class SubstitutionTask(luigi.Task):
+    def requires(self):
+        return SourceFileTask()
+
+    def output(self):
+        return luigi.LocalTarget('/usr/local/luigi/output/exercise2.txt')
+
+    def run(self):
+        with self.input().open('r') as examplefile:
+            text = examplefile.read()
+
+        for old, new in substitutions.items():
+            text = text.replace(old, new)
+
+        with self.output().open('w') as outfile:
+            outfile.write(text)
+
+
+def replace(word):
+    return substitutions.get(word, word)
+
+
+
 
 if __name__ == "__main__":
     luigi.run()
